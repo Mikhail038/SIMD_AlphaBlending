@@ -36,7 +36,7 @@ void extend_array (sf::Uint8* array, int* width, int* height, int multiple)
 
     int size = *height * new_width;
 
-    sf::Uint8* res_array = new sf::Uint8 (size);
+    sf::Uint8* res_array = new sf::Uint8[size];
 
     int old_counter = 0;
 
