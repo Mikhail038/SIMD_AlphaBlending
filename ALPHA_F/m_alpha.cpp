@@ -14,45 +14,73 @@ using namespace sf;
 
 //================================================================================
 
-const int H = 800;
-const int W = 600;
-
-//================================================================================
-
 int main ()
 {
-    file_to_array ("MEDIA/AskhatCat.bmp", );
+    SConfig config;
 
-    file_to_array ("MEDIA/Table.bmp");
+	sf::Image res_image;
 
-    RenderWindow window(VideoMode(W, H), "Alpha blending example");
+	sf::Image front_image;
+	sf::Image back_image;
+    front_image.loadFromFile ("MEDIA/AskhatCat.bmp");
+    back_image.loadFromFile ("MEDIA/Table.bmp");
 
-	Image front_image;
-    front_image.create(W, H);
-	Image back_image;
-    back_image.create(W, H);
+    sf::Uint8* front_array    = (sf::Uint8*) front_image.getPixelsPtr();
+    sf::Uint8* back_array     = (sf::Uint8*) back_image.getPixelsPtr();
 
-	Texture front_texture;
-	Texture back_texture;
+    config.back.x   = back_image.getSize().x;
+    config.back.y   = back_image.getSize().y;
+    config.front.x  = front_image.getSize().x;
+    config.front.y  = front_image.getSize().y;
 
-	Sprite foreground;
-	Sprite background;
+    printf ("back: %dx%d front: %dx%d\n", config.back.x, config.back.y, config.front.x, config.front.y);
 
-    blend_8_pixels ();
+    sf::Texture texture;
+    sf::Sprite sprite;
 
-    front_texture.loadFromImage(front_image);
-    background.setTexture(back_texture);
+    sf::Clock clock;
 
-    back_texture.loadFromImage(back_image);
-    background.setTexture(back_texture);
+    STimer timer;
+    timer.frames_amnt   = 100;
+    timer.frames_cnt    = 0;
+    timer.fps           = 0;
 
-    window.draw(sprite);
+    int pixels_in_vector = 8;
+
+    extend_array (front_array, &config.front.x, &config.front.y, pixels_in_vector);
+
+    RenderWindow window(VideoMode(config.back.x, config.back.y), "Alpha blending example");
+
+	while (window.isOpen())
+	{
+        sf::Event event;
+
+        while (window.pollEvent(event))
+        {
+            if (event.type == Event::Closed || event.key.code == Keyboard::Escape)
+            {
+                window.close();
+            }
+        }
+
+        start_fps_count (&clock, &timer);
+
+        blender (&config, &res_image, front_array, back_array);
+
+        int fps = get_fps_count (&clock, &timer);
+
+        texture.loadFromImage (res_image);
+        sprite.setTexture (texture);
+
+        window.draw (sprite);
+
+        window.display ();
+    }
 
     return 0;
 }
 
 
-//
 // int main ()
 // {
 //     SRender render = {};
