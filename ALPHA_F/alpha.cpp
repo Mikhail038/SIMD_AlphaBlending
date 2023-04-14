@@ -20,7 +20,7 @@ const __m256i  IdentVector  = _mm256_set1_epi8 (I);
 
 //================================================================================
 
-void extend_array (sf::Uint8* array, int* width, int* height, int multiple)
+void extend_array (sf::Uint8** array, int* width, int* height, int multiple)
 {
     int new_width = *width;
 
@@ -34,6 +34,10 @@ void extend_array (sf::Uint8* array, int* width, int* height, int multiple)
         new_width++;
     }
 
+    new_width = new_width * PIXEL;
+
+    int old_width = *width * PIXEL;
+
     int size = *height * new_width;
 
     sf::Uint8* res_array = new sf::Uint8[size];
@@ -45,13 +49,15 @@ void extend_array (sf::Uint8* array, int* width, int* height, int multiple)
 
     while (new_counter < size)
     {
-        if (inline_cnt > *width)
+        printf ("new %d/%d old %d inline %d\n", new_counter, size, old_counter, inline_cnt);
+
+        if (inline_cnt >= old_width)
         {
             res_array[new_counter] = 0;
         }
         else
         {
-            res_array[new_counter] = array[old_counter];
+            res_array[new_counter] = (*array)[old_counter];
 
             old_counter++;
         }
@@ -62,9 +68,9 @@ void extend_array (sf::Uint8* array, int* width, int* height, int multiple)
         new_counter++;
     }
 
-    delete [] array;
+    *array = res_array;
 
-    array = res_array;
+    *width = new_width / PIXEL;
 
     return;
 }
@@ -96,7 +102,7 @@ void blend_them_no_avx (SConfig* config, sf::Uint8* array, const sf::Uint8* fron
     {
         for (int x = 0; x < config->front.x; x++)
         {
-            background_pxl = PIXEL * ((300 + y) * config->back.x + 300 + x);
+            background_pxl  = PIXEL * ((300 + y) * config->back.x + 300 + x);
             foreground_pxl  = PIXEL * (y * config->front.x + x);
 
             R_pxl = array[background_pxl]     * (_1 - front_array[foreground_pxl + 3]);
@@ -127,6 +133,9 @@ void blend_them_no_avx (SConfig* config, sf::Uint8* array, const sf::Uint8* fron
 
 void blend_them_avx (SConfig* config, sf::Uint8* array, const sf::Uint8* front_array)
 {
+    int y_0 = 300;
+    int x_0 = 300;
+
     unsigned int R_pxl = 0;
     unsigned int G_pxl = 0;
     unsigned int B_pxl = 0;
@@ -139,8 +148,10 @@ void blend_them_avx (SConfig* config, sf::Uint8* array, const sf::Uint8* front_a
     {
         for (int x = 0; x < config->front.x; x++)
         {
-            background_pxl = PIXEL * ((300 + y) * config->back.x + 300 + x);
+            background_pxl  = PIXEL * ((y_0 + y) * config->back.x + x_0 + x);
             foreground_pxl  = PIXEL * (y * config->front.x + x);
+
+            printf ("x %d y %d bac_px %d/%d fr_px %d/%d\n", x, y, background_pxl, config->back.x * config->back.y, foreground_pxl, config->front.x * config->front.y);
 
             R_pxl = array[background_pxl]     * (_1 - front_array[foreground_pxl + 3]);
             G_pxl = array[background_pxl + 1] * (_1 - front_array[foreground_pxl + 3]);

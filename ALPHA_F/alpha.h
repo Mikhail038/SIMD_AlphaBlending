@@ -24,7 +24,7 @@ typedef struct
 
 //================================================================================
 
-void extend_array (sf::Uint8* array, int* width, int* height, int multiple);
+void extend_array (sf::Uint8** array, int* width, int* height, int multiple);
 
 void blender (SConfig* config, sf::Image* res_image, const sf::Uint8* front_array, const sf::Uint8* back_array);
 

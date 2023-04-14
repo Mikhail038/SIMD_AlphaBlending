@@ -47,7 +47,7 @@ int main ()
 
     int pixels_in_vector = 8;
 
-    extend_array (front_array, &config.front.x, &config.front.y, pixels_in_vector);
+    extend_array (&front_array, &config.front.x, &config.front.y, pixels_in_vector);
 
     RenderWindow window(VideoMode(config.back.x, config.back.y), "Alpha blending example");
 
