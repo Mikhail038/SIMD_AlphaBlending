@@ -17,7 +17,6 @@ const char  Z = 0x80u;
 
 const __m256i alpha_mask = _mm256_set_epi8
 (
-
         Z, 14, Z, 14, Z, 14, Z, 14,
         Z,  6, Z,  6, Z,  6, Z,  6,
         Z, 14, Z, 14, Z, 14, Z, 14,
@@ -183,20 +182,20 @@ void blend_them_avx (SConfig* config, sf::Uint8* array, const sf::Uint8* front_a
             __m256i up_front    = _mm256_loadu_si256 (( __m256i*) &front_array[foreground_pxl]); //temporary it is not up but all
             __m256i up_back     = _mm256_loadu_si256 (( __m256i*) &array[background_pxl]);
 
-            __m256i low_front    = _mm256_cvtepu8_epi16 (_mm256_extractf128_si256 (up_front, 0)); //0 - LOW
-            __m256i low_back     = _mm256_cvtepu8_epi16 (_mm256_extractf128_si256 (up_back,  0));
+            __m256i low_front    = _mm256_cvtepu8_epi16 (_mm256_extractf128_si256 (up_front, 1)); //1 - LOW
+            __m256i low_back     = _mm256_cvtepu8_epi16 (_mm256_extractf128_si256 (up_back,  1));
 
-            up_front = _mm256_cvtepu8_epi16 (_mm256_extractf128_si256 (up_front, 1)); //1 - HIGH
-            up_back  = _mm256_cvtepu8_epi16 (_mm256_extractf128_si256 (up_back,  1));
+            up_front = _mm256_cvtepu8_epi16 (_mm256_extractf128_si256 (up_front, 0)); //0 - HIGH
+            up_back  = _mm256_cvtepu8_epi16 (_mm256_extractf128_si256 (up_back,  0));
 
             __m256i low_alpha_channel   = _mm256_shuffle_epi8 (low_front, alpha_mask);
             __m256i up_alpha_channel    = _mm256_shuffle_epi8 (up_front, alpha_mask);
 
             low_front = _mm256_mullo_epi16 (low_front, low_alpha_channel);
-            low_back  = _mm256_mullo_epi16 (low_back, _mm256_sub_epi16 (_mm256_set1_epi16 (I), low_alpha_channel));
+            low_back  = _mm256_mullo_epi16 (low_back, _mm256_add_epi16 (IdentVector, low_alpha_channel));
 
             up_front = _mm256_mullo_epi16 (up_front, up_alpha_channel);
-            up_back  = _mm256_mullo_epi16 (up_back, _mm256_sub_epi16 (_mm256_set1_epi16 (I), up_alpha_channel));
+            up_back  = _mm256_mullo_epi16 (up_back, _mm256_add_epi16 (IdentVector, up_alpha_channel));
 
             __m256i low_sum = _mm256_add_epi16 (low_front, low_back);
             __m256i up_sum  = _mm256_add_epi16 (up_front, up_back);  //every second byte is low part of number now
